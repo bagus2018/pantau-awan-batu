@@ -1,0 +1,25 @@
+Waktu citra : 14 Nov 2026 01:30 WIB
+Waktu run   : 14 Nov 2026 01:46:10 WIB
+
+19 citra, terakhir 14 Nov 2026 01:30 WIB (data NOAA biasanya terlambat ±20–40 menit)
+
+HULU BATU saat ini: Tb min = 279.2 K (6 °C) → awan sedang/hangat / tidak konvektif
+  luas awan < 235 K = 0% | < 221 K = 0% | < 210 K = 0% wilayah
+  pendinginan tercepat 3 jam terakhir: 0.8 K per 10 menit (banjir bandang 2021: 15,8 K/10 mnt; median banjir: ±10 K/10 mnt)
+  Batu           : 288.6 K
+  Bumiaji        : 287.4 K
+  Sumber Brantas : 284.8 K
+  Singosari      : 291.3 K
+  Kota Malang    : 291.4 K
+GSMaP/GEE tidak dipakai: Dictionary.get: Dictionary does not contain key: 'hourlyPrecipRate'.
+
+==============================================================================
+INTERPRETASI 14 Nov 2026 01:30 WIB  |  skor kemiripan 0 / 7  →  RENDAH — belum menyerupai kejadian banjir historis
+==============================================================================
+  • Tb 279 K: lebih hangat dari semua banjir historis (paling hangat 207 K)
+  • tren 30 menit terakhir: relatif stabil (-1.1 K); titik terdingin saat ini: Sumber Brantas
+
+Catatan:
+  - Skor ini membandingkan dengan 16 banjir/luapan historis; ambang awan belum diuji terhadap hari hujan
+    tanpa banjir (SEL 9b). Awan sangat dingin juga sering terjadi tanpa banjir.
+  - Bukan peringatan dini resmi. Untuk keselamatan ikuti BMKG Jawa Timur & BPBD Kota Batu.
