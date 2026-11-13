@@ -5,6 +5,9 @@ on:
     - cron: '15 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   run-script:
     runs-on: ubuntu-latest
@@ -16,13 +19,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          cache: 'pip'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Jalankan Skrip Himawari
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
         run: python cek_himawari.py
+
+      - name: Simpan Hasil ke GitHub
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add output/
+          git diff --staged --quiet || git commit -m "Update pantauan Himawari $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git pull --rebase
+          git push
