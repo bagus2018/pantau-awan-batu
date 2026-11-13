@@ -3,6 +3,7 @@
 # =====================================================================
 import os
 import io
+import re
 import json
 import bz2
 import builtins
@@ -25,7 +26,11 @@ warnings.filterwarnings('ignore')
 # 0. AUTENTIKASI OTOMATIS (GOOGLE EARTH ENGINE & GOOGLE DRIVE API)
 # =====================================================================
 sa_info = json.loads(os.environ['GCP_SA_KEY'])
-ROOT_FOLDER_ID = os.environ['GDRIVE_FOLDER_ID']
+
+# Ekstrak ID folder secara otomatis (aman jika secret berisi URL penuh atau spasi)
+raw_folder = os.environ.get('GDRIVE_FOLDER_ID', '').strip()
+m_id = re.search(r'/folders/([a-zA-Z0-9_-]+)', raw_folder)
+ROOT_FOLDER_ID = m_id.group(1) if m_id else raw_folder.split('?')[0].strip()
 
 # Login Google Earth Engine
 ee_credentials = ee.ServiceAccountCredentials(sa_info['client_email'], key_data=json.dumps(sa_info))
@@ -41,7 +46,10 @@ def get_or_create_folder(folder_name, parent_id):
     """Mencari folder di Google Drive, atau membuatnya jika belum ada."""
     q = (f"name='{folder_name}' and '{parent_id}' in parents "
          f"and mimeType='application/vnd.google-apps.folder' and trashed=false")
-    res = drive_service.files().list(q=q, fields="files(id)").execute().get('files', [])
+    res = drive_service.files().list(
+        q=q, fields="files(id)",
+        supportsAllDrives=True, includeItemsFromAllDrives=True
+    ).execute().get('files', [])
     if res:
         return res[0]['id']
     meta = {
@@ -49,26 +57,38 @@ def get_or_create_folder(folder_name, parent_id):
         'parents': [parent_id],
         'mimeType': 'application/vnd.google-apps.folder'
     }
-    return drive_service.files().create(body=meta, fields='id').execute().get('id')
+    return drive_service.files().create(
+        body=meta, fields='id', supportsAllDrives=True
+    ).execute().get('id')
 
 def upload_or_overwrite(local_path, target_name, parent_id, mime_type):
     """Mengunggah file baru atau menimpa (overwrite) file yang sudah ada di Drive."""
     q = f"name='{target_name}' and '{parent_id}' in parents and trashed=false"
-    res = drive_service.files().list(q=q, fields="files(id)").execute().get('files', [])
+    res = drive_service.files().list(
+        q=q, fields="files(id)",
+        supportsAllDrives=True, includeItemsFromAllDrives=True
+    ).execute().get('files', [])
     media = MediaFileUpload(local_path, mimetype=mime_type, resumable=True)
     if res:
-        drive_service.files().update(fileId=res[0]['id'], media_body=media).execute()
+        drive_service.files().update(
+            fileId=res[0]['id'], media_body=media, supportsAllDrives=True
+        ).execute()
     else:
         meta = {'name': target_name, 'parents': [parent_id]}
-        drive_service.files().create(body=meta, media_body=media, fields='id').execute()
+        drive_service.files().create(
+            body=meta, media_body=media, fields='id', supportsAllDrives=True
+        ).execute()
 
 def download_if_exists(target_name, parent_id, local_path):
     """Mengunduh file dari Google Drive jika sudah ada."""
     q = f"name='{target_name}' and '{parent_id}' in parents and trashed=false"
-    res = drive_service.files().list(q=q, fields="files(id)").execute().get('files', [])
+    res = drive_service.files().list(
+        q=q, fields="files(id)",
+        supportsAllDrives=True, includeItemsFromAllDrives=True
+    ).execute().get('files', [])
     if not res:
         return False
-    request = drive_service.files().get_media(fileId=res[0]['id'])
+    request = drive_service.files().get_media(fileId=res[0]['id'], supportsAllDrives=True)
     with io.FileIO(local_path, 'wb') as fh:
         downloader = MediaIoBaseDownload(fh, request)
         done = False
@@ -79,9 +99,9 @@ def download_if_exists(target_name, parent_id, local_path):
 # =====================================================================
 # 1. PARAMETER & KONFIGURASI WILAYAH BATU
 # =====================================================================
-JAM_KE_BELAKANG = 3                                   # deret waktu untuk laju pendinginan
-REGION   = (112.20, -8.30, 113.00, -7.55)             # potongan peta (Malang Raya)
-BATU_BOX = (112.45, -7.96, 112.62, -7.72)             # hulu Batu (sama dengan SEL 9)
+JAM_KE_BELAKANG = 3                                    # deret waktu untuk laju pendinginan
+REGION   = (112.20, -8.30, 113.00, -7.55)              # potongan peta (Malang Raya)
+BATU_BOX = (112.45, -7.96, 112.62, -7.72)              # hulu Batu (sama dengan SEL 9)
 TITIK    = {'Batu': (112.525, -7.87), 'Bumiaji': (112.55, -7.81), 'Sumber Brantas': (112.53, -7.76),
             'Singosari': (112.65, -7.89), 'Kota Malang': (112.63, -7.98)}
 
