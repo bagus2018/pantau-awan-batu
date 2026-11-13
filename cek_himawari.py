@@ -2,10 +2,9 @@
 # CEK AWAN HIMAWARI TERKINI DI BATU (Versi Otomatis GitHub Actions)
 # =====================================================================
 import os
-import io
-import re
 import json
 import bz2
+import html
 import builtins
 import warnings
 import numpy as np
@@ -16,85 +15,15 @@ import matplotlib.pyplot as plt
 import s3fs
 from satpy import Scene
 import ee
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 
 warnings.filterwarnings('ignore')
 
 # =====================================================================
-# 0. AUTENTIKASI OTOMATIS (GOOGLE EARTH ENGINE & GOOGLE DRIVE API)
+# 0. AUTENTIKASI GOOGLE EARTH ENGINE
 # =====================================================================
 sa_info = json.loads(os.environ['GCP_SA_KEY'])
-
-# Ekstrak ID folder secara otomatis (aman jika secret berisi URL penuh atau spasi)
-raw_folder = os.environ.get('GDRIVE_FOLDER_ID', '').strip()
-m_id = re.search(r'/folders/([a-zA-Z0-9_-]+)', raw_folder)
-ROOT_FOLDER_ID = m_id.group(1) if m_id else raw_folder.split('?')[0].strip()
-
-# Login Google Earth Engine
 ee_credentials = ee.ServiceAccountCredentials(sa_info['client_email'], key_data=json.dumps(sa_info))
 ee.Initialize(ee_credentials, project='bsw-um-2403')
-
-# Login Google Drive API
-drive_creds = service_account.Credentials.from_service_account_info(
-    sa_info, scopes=['https://www.googleapis.com/auth/drive']
-)
-drive_service = build('drive', 'v3', credentials=drive_creds)
-
-def get_or_create_folder(folder_name, parent_id):
-    """Mencari folder di Google Drive, atau membuatnya jika belum ada."""
-    q = (f"name='{folder_name}' and '{parent_id}' in parents "
-         f"and mimeType='application/vnd.google-apps.folder' and trashed=false")
-    res = drive_service.files().list(
-        q=q, fields="files(id)",
-        supportsAllDrives=True, includeItemsFromAllDrives=True
-    ).execute().get('files', [])
-    if res:
-        return res[0]['id']
-    meta = {
-        'name': folder_name,
-        'parents': [parent_id],
-        'mimeType': 'application/vnd.google-apps.folder'
-    }
-    return drive_service.files().create(
-        body=meta, fields='id', supportsAllDrives=True
-    ).execute().get('id')
-
-def upload_or_overwrite(local_path, target_name, parent_id, mime_type):
-    """Mengunggah file baru atau menimpa (overwrite) file yang sudah ada di Drive."""
-    q = f"name='{target_name}' and '{parent_id}' in parents and trashed=false"
-    res = drive_service.files().list(
-        q=q, fields="files(id)",
-        supportsAllDrives=True, includeItemsFromAllDrives=True
-    ).execute().get('files', [])
-    media = MediaFileUpload(local_path, mimetype=mime_type, resumable=True)
-    if res:
-        drive_service.files().update(
-            fileId=res[0]['id'], media_body=media, supportsAllDrives=True
-        ).execute()
-    else:
-        meta = {'name': target_name, 'parents': [parent_id]}
-        drive_service.files().create(
-            body=meta, media_body=media, fields='id', supportsAllDrives=True
-        ).execute()
-
-def download_if_exists(target_name, parent_id, local_path):
-    """Mengunduh file dari Google Drive jika sudah ada."""
-    q = f"name='{target_name}' and '{parent_id}' in parents and trashed=false"
-    res = drive_service.files().list(
-        q=q, fields="files(id)",
-        supportsAllDrives=True, includeItemsFromAllDrives=True
-    ).execute().get('files', [])
-    if not res:
-        return False
-    request = drive_service.files().get_media(fileId=res[0]['id'], supportsAllDrives=True)
-    with io.FileIO(local_path, 'wb') as fh:
-        downloader = MediaIoBaseDownload(fh, request)
-        done = False
-        while not done:
-            _, done = downloader.next_chunk()
-    return True
 
 # =====================================================================
 # 1. PARAMETER & KONFIGURASI WILAYAH BATU
@@ -105,16 +34,15 @@ BATU_BOX = (112.45, -7.96, 112.62, -7.72)              # hulu Batu (sama dengan 
 TITIK    = {'Batu': (112.525, -7.87), 'Bumiaji': (112.55, -7.81), 'Sumber Brantas': (112.53, -7.76),
             'Singosari': (112.65, -7.89), 'Kota Malang': (112.63, -7.98)}
 
-# Pembanding dari SEL 9 (Tb minimum hulu Batu, ±12 jam sekitar puncak hujan)
 HIST_TB = {'Banjir bandang 4 Nov 2021 (Bulukerto)': 187.1, 'Banjir bandang 8–10 Nov 2025 (Coban Rais)': 192.0,
            'Luapan 20–22 Feb 2026 (Bumiaji)': 186.7, 'Luapan 3–4 Jan 2026 (Dusun Beru)': 187.8,
            'Luapan 29–30 Mar 2026 (Krecek)': 200.3, 'Genangan drainase 2 Jul 2025 (Selecta)': 219.5}
 
 fs = s3fs.S3FileSystem(anon=True)
 TMP = './tmp_hima'
-OUT_LOCAL = './out_hima'
+OUT_DIR = './output'
 os.makedirs(TMP, exist_ok=True)
-os.makedirs(OUT_LOCAL, exist_ok=True)
+os.makedirs(OUT_DIR, exist_ok=True)
 
 RUN_WIB = pd.Timestamp.now(tz='Asia/Jakarta').tz_localize(None)
 LAPORAN = []
@@ -226,13 +154,12 @@ ax[1].set_title(f'{JAM_KE_BELAKANG} jam terakhir vs Tb banjir historis (garis me
 ax[1].legend(fontsize=8)
 
 DATA_WIB = TS.index[-1]
-STAMP = f'{RUN_WIB:%Y%m%d_%H%M%S}WIB_citra{DATA_WIB:%H%M}'
 fig.suptitle(f'Citra Himawari-9: {DATA_WIB:%d %b %Y %H:%M} WIB   |   dijalankan: {RUN_WIB:%d %b %Y %H:%M:%S} WIB',
              fontsize=11, y=1.02)
 fig.tight_layout()
 
-png_local = f'{OUT_LOCAL}/peta_tren_{STAMP}.png'
-fig.savefig(png_local, dpi=160, bbox_inches='tight')
+png_latest = f'{OUT_DIR}/LATEST_peta_tren.png'
+fig.savefig(png_latest, dpi=160, bbox_inches='tight')
 plt.close(fig)
 
 # =====================================================================
@@ -311,54 +238,52 @@ print('    tanpa banjir (SEL 9b). Awan sangat dingin juga sering terjadi tanpa b
 print('  - Bukan peringatan dini resmi. Untuk keselamatan ikuti BMKG Jawa Timur & BPBD Kota Batu.')
 
 # =====================================================================
-# 5. SIMPAN & UNGGAH KE GOOGLE DRIVE (ARSIP + FILE LIVE GOOGLE SITES)
+# 5. SIMPAN HASIL KE FOLDER OUTPUT REPOSITORI GITHUB
 # =====================================================================
-deret_local = f'{OUT_LOCAL}/deret_awan_{STAMP}.csv'
-banding_local = f'{OUT_LOCAL}/banding_historis_{STAMP}.csv'
-interp_local = f'{OUT_LOCAL}/interpretasi_{STAMP}.txt'
+TS.assign(waktu_run_WIB=RUN_WIB).to_csv(f'{OUT_DIR}/LATEST_deret_awan.csv', index_label='waktu_citra_WIB')
+cmp_sorted.to_csv(f'{OUT_DIR}/LATEST_banding_historis.csv')
 
-TS.assign(waktu_run_WIB=RUN_WIB).to_csv(deret_local, index_label='waktu_citra_WIB')
-cmp_sorted.to_csv(banding_local)
-with open(interp_local, 'w', encoding='utf-8') as fo:
-    fo.write(f'Waktu citra : {DATA_WIB:%d %b %Y %H:%M} WIB\nWaktu run   : {RUN_WIB:%d %b %Y %H:%M:%S} WIB\n\n')
-    fo.write('\n'.join(LAPORAN))
+teks_laporan = (f'Waktu citra : {DATA_WIB:%d %b %Y %H:%M} WIB\n'
+                f'Waktu run   : {RUN_WIB:%d %b %Y %H:%M:%S} WIB\n\n' + '\n'.join(LAPORAN))
+with open(f'{OUT_DIR}/LATEST_interpretasi.txt', 'w', encoding='utf-8') as fo:
+    fo.write(teks_laporan)
 
-# Siapkan struktur subfolder di dalam HMS_GDG_MERIT_output
-cek_folder_id = get_or_create_folder('cek_himawari_batu', ROOT_FOLDER_ID)
-tgl_folder_id = get_or_create_folder(f'{RUN_WIB:%Y%m%d}', cek_folder_id)
+# Buat halaman HTML siap-embed untuk Google Sites
+html_out = f"""<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pantauan Awan Himawari-9 Hulu Batu</title>
+<style>
+  body {{ font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: #fff; color: #1f2937; }}
+  img {{ max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e5e7eb; }}
+  pre {{ background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; overflow-x: auto; font-size: 13px; line-height: 1.5; }}
+</style>
+</head>
+<body>
+  <img src="LATEST_peta_tren.png?v={RUN_WIB:%Y%m%d%H%M}" alt="Peta Tren Himawari-9 Batu">
+  <pre>{html.escape(teks_laporan)}</pre>
+</body>
+</html>"""
+with open(f'{OUT_DIR}/index.html', 'w', encoding='utf-8') as fh:
+    fh.write(html_out)
 
-# A. Unggah Arsip Berstempel Waktu ke folder tanggal
-upload_or_overwrite(png_local, f'peta_tren_{STAMP}.png', tgl_folder_id, 'image/png')
-upload_or_overwrite(deret_local, f'deret_awan_{STAMP}.csv', tgl_folder_id, 'text/csv')
-upload_or_overwrite(banding_local, f'banding_historis_{STAMP}.csv', tgl_folder_id, 'text/csv')
-upload_or_overwrite(interp_local, f'interpretasi_{STAMP}.txt', tgl_folder_id, 'text/plain')
-
-# B. Unggah/Timpa File "LATEST" di folder utama HMS_GDG_MERIT_output (untuk Google Sites)
-upload_or_overwrite(png_local, 'LATEST_peta_tren.png', ROOT_FOLDER_ID, 'image/png')
-upload_or_overwrite(interp_local, 'LATEST_interpretasi.txt', ROOT_FOLDER_ID, 'text/plain')
-upload_or_overwrite(banding_local, 'LATEST_banding_historis.csv', ROOT_FOLDER_ID, 'text/csv')
-
-# C. Perbarui Log Studi Kasus (log_cek_himawari_batu.csv) di folder utama
+# Perbarui Log Studi Kasus Kumulatif
 if SIMPAN_LOG:
-    try:
-        log_local = f'{OUT_LOCAL}/log_cek_himawari_batu.csv'
-        has_old_log = download_if_exists('log_cek_himawari_batu.csv', ROOT_FOLDER_ID, log_local)
-        row = dict(
-            waktu_citra_WIB=TS.index[-1], waktu_run_WIB=RUN_WIB, Tb_min=tb,
-            f235=now.f235, f221=now.f221, f210=now.f210, cool1h=cool1h,
-            dur221_j=dur221, tren30=trend30, inti=inti, skor=skor,
-            tingkat=tingkat.split(' —')[0],
-            **({k: ante[k] for k in ['P3j', 'P24j', 'P72j']} if ante else {}),
-            **{f'Tb_{n}': tb_last[np.unravel_index(np.argmin((GRID['lon']-x)**2 + (GRID['lat']-y)**2),
-                                                   GRID['lon'].shape)] for n, (x, y) in TITIK.items()}
-        )
-        new_df = pd.DataFrame([row])
-        if has_old_log:
-            new_df = pd.concat([pd.read_csv(log_local), new_df], ignore_index=True)
-        new_df.to_csv(log_local, index=False)
-        upload_or_overwrite(log_local, 'log_cek_himawari_batu.csv', ROOT_FOLDER_ID, 'text/csv')
-        builtins.print('Log studi kasus berhasil diperbarui di Google Drive.')
-    except Exception as e:
-        builtins.print('Log tidak tersimpan:', str(e)[:120])
+    log_path = f'{OUT_DIR}/log_cek_himawari_batu.csv'
+    row = dict(
+        waktu_citra_WIB=TS.index[-1], waktu_run_WIB=RUN_WIB, Tb_min=tb,
+        f235=now.f235, f221=now.f221, f210=now.f210, cool1h=cool1h,
+        dur221_j=dur221, tren30=trend30, inti=inti, skor=skor,
+        tingkat=tingkat.split(' —')[0],
+        **({k: ante[k] for k in ['P3j', 'P24j', 'P72j']} if ante else {}),
+        **{f'Tb_{n}': tb_last[np.unravel_index(np.argmin((GRID['lon']-x)**2 + (GRID['lat']-y)**2),
+                                               GRID['lon'].shape)] for n, (x, y) in TITIK.items()}
+    )
+    new_df = pd.DataFrame([row])
+    if os.path.exists(log_path):
+        new_df = pd.concat([pd.read_csv(log_path), new_df], ignore_index=True)
+    new_df.to_csv(log_path, index=False)
 
-builtins.print(f'\nSelesai! Arsip dan file LATEST berhasil diunggah ke Google Drive.')
+builtins.print('\nSelesai! Seluruh hasil berhasil disimpan ke folder output/.')
