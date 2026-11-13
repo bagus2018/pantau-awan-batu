@@ -1,0 +1,10 @@
+Plaintext
+satpy
+s3fs
+pyorbital
+numpy
+pandas
+matplotlib
+earthengine-api
+google-api-python-client
+google-auth
