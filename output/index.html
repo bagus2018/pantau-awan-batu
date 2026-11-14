@@ -1,41 +1,43 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="900">
 <title>Pantauan Awan Himawari-9 Hulu Batu</title>
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: #fff; color: #1f2937; }
-  img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e5e7eb; }
-  pre { background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; overflow-x: auto; font-size: 13px; line-height: 1.5; }
-</style>
-</head>
-<body>
-  <img src="LATEST_peta_tren.png?v=202611140637" alt="Peta Tren Himawari-9 Batu">
-  <pre>Waktu citra : 14 Nov 2026 06:20 WIB
-Waktu run   : 14 Nov 2026 06:37:15 WIB
+ body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:16px;background:#fff;color:#1f2937}
+ .badge{display:inline-block;padding:10px 18px;border-radius:10px;color:#fff;font-size:22px;font-weight:700;background:#16a34a}
+ .kpi{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:8px 0 14px}
+ .kpi div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px}
+ img{max-width:100%;height:auto;border-radius:8px;border:1px solid #e5e7eb}
+ pre{background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #e2e8f0;overflow-x:auto;font-size:13px;line-height:1.5}
+ table{border-collapse:collapse;font-size:13px} td,th{border:1px solid #e5e7eb;padding:4px 8px;text-align:left}
+ small{color:#6b7280}
+</style></head><body>
+<div class="kpi">
+ <span class="badge">NORMAL</span>
+ <div>Dingin terintegrasi 6 jam<br><b>0 K·jam</b></div>
+ <div>Ambang<br>Waspada ≥ 55 · Siaga ≥ 78</div>
+ <div>Tb min hulu Batu<br><b>292 K</b> (19 °C)</div>
+ <div>Citra<br><b>14 Nov 2026 08:10 WIB</b></div>
+</div>
+<img src="LATEST_peta_tren.png?v=202611140830" alt="Peta dan tren awan Himawari-9 hulu Batu">
+<pre>Waktu citra : 14 Nov 2026 08:10 WIB
+Waktu run   : 14 Nov 2026 08:30:25 WIB
 
-19 citra, terakhir 14 Nov 2026 06:20 WIB (data NOAA biasanya terlambat ±20–40 menit)
+STATUS: NORMAL  —  dingin terintegrasi 6 jam terakhir = 0 K·jam  (Waspada ≥ 55 | Siaga ≥ 78)
+  satu jam lalu 0 K·jam → stabil
+  ambang: SEL 9d (2026-11-14 08:00 WIB); pada data historis POD 0.688, FAR 0.312, TSS 0.521
 
-HULU BATU saat ini: Tb min = 285.7 K (13 °C) → awan sedang/hangat / tidak konvektif
-  luas awan &lt; 235 K = 0% | &lt; 221 K = 0% | &lt; 210 K = 0% wilayah
-  pendinginan tercepat 3 jam terakhir: 0.4 K per 10 menit (banjir bandang 2021: 15,8 K/10 mnt; median banjir: ±10 K/10 mnt)
-  Batu           : 292.5 K
-  Bumiaji        : 290.5 K
-  Sumber Brantas : 286.6 K
-  Singosari      : 293.0 K
-  Kota Malang    : 294.0 K
-GSMaP/GEE tidak dipakai: Dictionary.get: Dictionary does not contain key: &#x27;hourlyPrecipRate&#x27;.
+Awan saat ini (hulu Batu): Tb min 292.3 K (19 °C) → tidak ada awan konvektif; tren 30 menit +2.1 K
+  luas tertutup awan &lt;235 / &lt;221 / &lt;210 K = 0 / 0 / 0 %
+  Batu 299 K | Bumiaji 295 K | Sumber Brantas 293 K | Singosari 299 K | Kota Malang 302 K
 
-==============================================================================
-INTERPRETASI 14 Nov 2026 06:20 WIB  |  skor kemiripan 0 / 7  →  RENDAH — belum menyerupai kejadian banjir historis
-==============================================================================
-  • Tb 286 K: lebih hangat dari semua banjir historis (paling hangat 207 K)
-  • tren 30 menit terakhir: relatif stabil (+2.3 K); titik terdingin saat ini: Sumber Brantas
-
-Catatan:
-  - Skor ini membandingkan dengan 16 banjir/luapan historis; ambang awan belum diuji terhadap hari hujan
-    tanpa banjir (SEL 9b). Awan sangat dingin juga sering terjadi tanpa banjir.
-  - Bukan peringatan dini resmi. Untuk keselamatan ikuti BMKG Jawa Timur &amp; BPBD Kota Batu.</pre>
-</body>
-</html>
+Arti status: NORMAL = awan dingin belum bertahan lama (hari hujan biasa umumnya di sini);
+  WASPADA = pantau ulang; SIAGA = setara pola awan saat 16 kejadian banjir historis 2020–2026.
+  Status dicapai rata-rata sekitar saat puncak hujan → berguna sebagai konfirmasi cepat di hulu dan
+  tenggang beberapa jam untuk wilayah hilir (Kota Malang).
+Bukan peringatan dini resmi. Untuk keselamatan ikuti BMKG Jawa Timur &amp; BPBD Kota Batu.</pre>
+<h4>Riwayat 24 pengecekan terakhir</h4>
+<table><tr><th>Waktu citra (WIB)</th><th>Status</th><th>DI (K·jam)</th><th>Tb min (K)</th></tr><tr><td>2026-11-14 08:10</td><td>NORMAL</td><td>0</td><td>292</td></tr><tr><td>2026-11-14 06:20</td><td>RENDAH</td><td></td><td>286</td></tr><tr><td>2026-11-14 01:30</td><td>RENDAH</td><td></td><td>279</td></tr></table>
+<p><small>Diperbarui otomatis tiap jam. Indikator penelitian (Universitas Negeri Malang), bukan peringatan dini resmi —
+ikuti BMKG Jawa Timur &amp; BPBD Kota Batu.</small></p>
+</body></html>
