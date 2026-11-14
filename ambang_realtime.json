@@ -1,0 +1,13 @@
+{
+  "jendela_jam": 6,
+  "ambang_siaga_Kjam": 78.1,
+  "ambang_waspada_Kjam": 54.7,
+  "tss_loocv": 0.521,
+  "pod_loocv": 0.688,
+  "far_loocv": 0.312,
+  "tenggang_median_jam": -0.5,
+  "n_banjir": 16,
+  "n_pembanding": 30,
+  "langkah_citra_menit": 30,
+  "dibuat": "2026-11-14 08:00 WIB"
+}
