@@ -208,9 +208,12 @@ hist = LOG.tail(24).iloc[::-1]
 def _st(r):
     s = r.get('status') if isinstance(r.get('status'), str) else (r.get('tingkat') if isinstance(r.get('tingkat'), str) else '–')
     return s
+def _di(r):
+    v = r.get('DI', np.nan)
+    return '' if pd.isna(v) else '%.0f' % float(v)
 rows_h = ''.join(
-    f"<tr><td>{html.escape(str(r['waktu_citra_WIB'])[:16])}</td><td>{html.escape(_st(r))}</td>"
-    f"<td>{'' if pd.isna(r.get('DI', np.nan)) else f'{float(r.get('DI')):.0f}'}</td><td>{float(r['Tb_min']):.0f}</td></tr>"
+    '<tr><td>%s</td><td>%s</td><td>%s</td><td>%.0f</td></tr>'
+    % (html.escape(str(r['waktu_citra_WIB'])[:16]), html.escape(_st(r)), _di(r), float(r['Tb_min']))
     for _, r in hist.iterrows())
 ver = f'{RUN_WIB:%Y%m%d%H%M}'
 page = f"""<!DOCTYPE html>
