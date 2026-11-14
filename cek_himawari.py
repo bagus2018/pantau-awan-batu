@@ -153,6 +153,34 @@ say('Bukan peringatan dini resmi. Untuk keselamatan ikuti BMKG Jawa Timur & BPBD
 
 # ---------------- 5. GRAFIK ----------------
 fig, ax = plt.subplots(1, 3, figsize=(19, 5.6), gridspec_kw={'width_ratios': [1.1, 1, 1]})
+
+# Animasi pergerakan awan (GIF dari GRIDS 12 jam terakhir)
+from matplotlib.animation import FuncAnimation, PillowWriter
+fig_g, ax_g = plt.subplots(figsize=(6.4, 5.2))
+sm = plt.cm.ScalarMappable(cmap='turbo_r', norm=plt.Normalize(vmin=185, vmax=300))
+sm.set_array([])
+fig_g.colorbar(sm, ax=ax_g, label='Tb (K)')
+frame_seq = list(range(len(GRIDS))) + [len(GRIDS) - 1] * 2
+
+def _upd_gif(idx):
+    t_f, tb_f = GRIDS[idx]
+    ax_g.clear()
+    ax_g.pcolormesh(GRID['lon'], GRID['lat'], tb_f, cmap='turbo_r', vmin=185, vmax=300, shading='auto')
+    ax_g.contour(GRID['lon'], GRID['lat'], tb_f, levels=[210, 221, 235], colors=['k', 'm', 'w'], linewidths=1)
+    ax_g.add_patch(plt.Rectangle(BATU_BOX[:2], BATU_BOX[2]-BATU_BOX[0], BATU_BOX[3]-BATU_BOX[1], fill=False, ec='r', lw=2))
+    for n, (a, b) in TITIK.items():
+        ax_g.plot(a, b, 'k^', ms=5)
+        ax_g.text(a + .01, b, n, fontsize=8)
+    ax_g.set_xlim(REGION[0], REGION[2])
+    ax_g.set_ylim(REGION[1], REGION[3])
+    ax_g.set_title(f'Pergerakan Awan B13 — {t_f:%d %b %Y %H:%M} WIB', fontsize=10, fontweight='bold')
+
+_upd_gif(0)
+fig_g.tight_layout()
+ani = FuncAnimation(fig_g, _upd_gif, frames=frame_seq, interval=350)
+ani.save(f'{OUT}/LATEST_animasi_awan.gif', writer=PillowWriter(fps=3), dpi=95)
+plt.close(fig_g)
+
 pm = ax[0].pcolormesh(GRID['lon'], GRID['lat'], tb_last, cmap='turbo_r', vmin=185, vmax=300, shading='auto')
 ax[0].contour(GRID['lon'], GRID['lat'], tb_last, levels=[210, 221, 235], colors=['k', 'm', 'w'], linewidths=1)
 ax[0].add_patch(plt.Rectangle(BATU_BOX[:2], BATU_BOX[2]-BATU_BOX[0], BATU_BOX[3]-BATU_BOX[1], fill=False, ec='r', lw=2))
