@@ -2,7 +2,7 @@ name: Pantau Awan Himawari Batu
 
 on:
   schedule:
-    - cron: '15 * * * *'
+    - cron: '35 * * * *'
   workflow_dispatch:
 
 permissions:
