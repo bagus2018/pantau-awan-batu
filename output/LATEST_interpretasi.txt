@@ -1,5 +1,5 @@
 Waktu citra : 17 Nov 2026 21:30 WIB
-Waktu run   : 17 Nov 2026 21:45:50 WIB
+Waktu run   : 17 Nov 2026 21:47:24 WIB
 
 STATUS: NORMAL  —  dingin terintegrasi 6 jam terakhir = 49 K·jam  (Waspada ≥ 55 | Siaga ≥ 78)
   satu jam lalu 49 K·jam → stabil
