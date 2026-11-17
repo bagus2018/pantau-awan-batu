@@ -40,5 +40,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add output/
           git diff --staged --quiet || git commit -m "Update pantauan Himawari $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git pull --rebase
+          git pull --rebase -X theirs
           git push
