@@ -1,7 +1,8 @@
 """
-PANTAU AWAN HIMAWARI-9 HULU BATU — v2 untuk GitHub Actions (repositori pantau-awan-batu)
+PANTAU AWAN HIMAWARI-9 HULU BATU — v2.1 untuk GitHub Actions (repositori pantau-awan-batu)
 =========================================================================================
-Dijalankan tiap jam oleh workflow (cron '15 * * * *'); hasil disimpan ke folder output/ (workflow: git add output/).
+Dijalankan tiap jam (dipicu Apps Script pemicuGitHub + cron cadangan); hasil ke output/ (workflow: git add output/).
+v2.1: + animasi awan LATEST_animasi_awan.gif; narasi membaca kinerja ambang hasil rekalibrasi otomatis.
 
 Indikator utama: DINGIN TERINTEGRASI bergulir di hulu Batu (hasil SEL 9b–9d)
     DI = Σ max(0, 221 − Tb_min) · Δt   selama W jam terakhir (citra tiap 30 menit)      [K·jam]
@@ -14,6 +15,7 @@ Keluaran setiap run (DITIMPA, untuk tampilan dashboard / Google Sites):
     output/LATEST_interpretasi.txt    narasi
     output/LATEST_deret_awan.csv      deret Tb & DI W jam terakhir
     output/LATEST_banding_historis.csv
+    output/LATEST_animasi_awan.gif    animasi pergerakan awan W jam terakhir
     output/log_cek_himawari_batu.csv  log kumulatif (satu baris per run, kolom ada_banjir diisi manual)
 Arsip BERLABEL WAKTU (tidak pernah ditimpa) — hanya bila status ≥ SIMPAN_MULAI (bawaan SIAGA):
     output/arsip/YYYY/MM/DD/<waktu akses>_{peta.png, interpretasi.txt, deret_awan.csv}
@@ -135,8 +137,8 @@ say(f'STATUS: {status}  —  dingin terintegrasi {W} jam terakhir = {DI:.0f} K·
 if np.isfinite(DI_1j):
     say(f'  satu jam lalu {DI_1j:.0f} K·jam → {"naik" if DI > DI_1j + 1 else "turun" if DI < DI_1j - 1 else "stabil"}')
 if not lengkap: say(f'  ⚠ hanya {len(T30)} dari {W*2} citra 30-menitan tersedia; DI bisa lebih rendah dari sebenarnya')
-say(f'  ambang: {AMB["sumber"]}' + (f'; pada data historis POD {AMB["pod_loocv"]}, FAR {AMB["far_loocv"]}, TSS {AMB["tss_loocv"]}'
-                                     if 'pod_loocv' in AMB else ''))
+_pod, _far, _tss = (AMB.get(k + '_loocv', AMB.get(k)) for k in ('pod', 'far', 'tss'))
+say(f'  ambang: {AMB["sumber"]}' + (f'; kinerja pada data validasi POD {_pod}, FAR {_far}, TSS {_tss}' if _pod is not None else ''))
 say('')
 say(f'Awan saat ini (hulu Batu): Tb min {now.Tb_min:.1f} K ({now.Tb_min-273.15:.0f} °C) → {kelas}; tren 30 menit {tren:+.1f} K')
 say(f'  luas tertutup awan <235 / <221 / <210 K = {now.f235*100:.0f} / {now.f221*100:.0f} / {now.f210*100:.0f} %')
