@@ -1,13 +1,13 @@
-Waktu citra : 25 Nov 2026 02:30 WIB
-Waktu run   : 25 Nov 2026 02:45:49 WIB
+Waktu citra : 25 Nov 2026 03:30 WIB
+Waktu run   : 25 Nov 2026 03:45:38 WIB
 
-STATUS: NORMAL  —  dingin terintegrasi 6 jam terakhir = 23 K·jam  (Waspada ≥ 55 | Siaga ≥ 78)
-  satu jam lalu 23 K·jam → stabil
+STATUS: NORMAL  —  dingin terintegrasi 6 jam terakhir = 13 K·jam  (Waspada ≥ 55 | Siaga ≥ 78)
+  satu jam lalu 13 K·jam → stabil
   ambang: SEL 9d (2026-11-14 08:00 WIB); kinerja pada data validasi POD 0.688, FAR 0.312, TSS 0.521
 
-Awan saat ini (hulu Batu): Tb min 257.4 K (-16 °C) → tidak ada awan konvektif; tren 30 menit +22.7 K
+Awan saat ini (hulu Batu): Tb min 254.9 K (-18 °C) → tidak ada awan konvektif; tren 30 menit -13.3 K
   luas tertutup awan <235 / <221 / <210 K = 0 / 0 / 0 %
-  Batu 279 K | Bumiaji 277 K | Sumber Brantas 274 K | Singosari 274 K | Kota Malang 262 K
+  Batu 276 K | Bumiaji 274 K | Sumber Brantas 269 K | Singosari 285 K | Kota Malang 284 K
 
 Arti status: NORMAL = awan dingin belum bertahan lama (hari hujan biasa umumnya di sini);
   WASPADA = pantau ulang; SIAGA = setara pola awan saat 16 kejadian banjir historis 2020–2026.
